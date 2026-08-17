@@ -14,7 +14,6 @@ from common import ERROR_TAXONOMY
 # =====================================================
 # CONFIGURATION
 # =====================================================
-
 load_dotenv()
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -128,7 +127,6 @@ def collect_compiler_messages(code):
             except:
                 pass
 
-
 # =====================================================
 # CLASSIFICATION
 # =====================================================
@@ -207,7 +205,6 @@ def classify_code(code):
 
     return list(labels), compiler_output
 
-
 # =====================================================
 # COLLECT DATASET
 # =====================================================
@@ -254,7 +251,6 @@ def collect_dataset():
 
     return pd.DataFrame(records)
 
-
 # =====================================================
 # EXECUTION
 # =====================================================
@@ -266,5 +262,4 @@ dataset.to_csv(
 )
 
 print("\nCollection completed.")
-
 print(f"Total collected: {len(dataset)}")
