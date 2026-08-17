@@ -26,7 +26,6 @@ COLLECTION_QUERIES = [
     "language:C introductory programming"
 ]
 
-CLEAN_COMMENTS = re.compile(r"\/\/.*|\/\*[\s\S]*?\*\/")
 SEMANTIC = re.compile(r"if\s*\(.*=.*\)")
 FUNCTION_MISSUE = re.compile(r"\*\w+\s*=", re.DOTALL)
 POINTER = re.compile(r"\*\w+\s*=")
