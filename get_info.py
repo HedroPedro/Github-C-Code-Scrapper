@@ -87,11 +87,9 @@ def collect_source_code(item):
 
     return None
 
-
 # =====================================================
 # COLLECT COMPILER OUTPUT
 # =====================================================
-
 def collect_compiler_messages(code):
     temp_path = None
     try:
@@ -134,21 +132,14 @@ def collect_compiler_messages(code):
 # =====================================================
 # CLASSIFICATION
 # =====================================================
-
 def classify_code(code):
 
     labels = set()
-
-    compiler_output = (
-        collect_compiler_messages(
-            code
-        )
-    )
+    compiler_output = (collect_compiler_messages(code))
 
     text = code.lower()
 
     # 1 — syntax
-
     syntax_patterns = [
         "expected",
         "missing",
@@ -156,7 +147,7 @@ def classify_code(code):
         "undeclared"
     ]
 
-    if any(
+    if any (
         pattern in compiler_output.lower()
         for pattern in syntax_patterns
     ):
@@ -183,11 +174,9 @@ def classify_code(code):
 
     # 5 — memory
     if ("malloc(" in text and "free(" not in text):
-
         labels.add(ERROR_TAXONOMY["memory_error"])
 
     if "gets(" in text:
-
         labels.add(ERROR_TAXONOMY["memory_error"])
 
     # 6 — control structure
@@ -222,15 +211,11 @@ def classify_code(code):
 # =====================================================
 # COLLECT DATASET
 # =====================================================
-
 def collect_dataset():
-
     records = []
-
     collected = 0
 
     for query in COLLECTION_QUERIES:
-
         print(f"\nCollecting: {query}")
 
         references = collect_code_references(query)
@@ -264,25 +249,20 @@ def collect_dataset():
                     "code":
                     code
                 })
-
                 collected += 1
-
             time.sleep(0.3)
 
-    return pd.DataFrame(
-        records
-    )
+    return pd.DataFrame(records)
 
 
 # =====================================================
 # EXECUTION
 # =====================================================
-
 dataset = collect_dataset()
-
 dataset.to_csv(
     "collected_c_code_dataset.csv",
-    index=False
+    index=False,
+    quotechar="'"
 )
 
 print("\nCollection completed.")
