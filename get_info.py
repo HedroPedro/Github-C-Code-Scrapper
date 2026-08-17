@@ -29,6 +29,7 @@ COLLECTION_QUERIES = [
 CLEAN_COMMENTS = re.compile(r"\/\/.*|\/\*[\s\S]*?\*\/")
 SEMANTIC = re.compile(r"if\s*\(.*=.*\)")
 FUNCTION_MISSUE = re.compile(r"\*\w+\s*=", re.DOTALL)
+POINTER = re.compile(r"\*\w+\s*=")
 CONTROL = re.compile(r"while\s*\(\s*1\s*\)")
 
 MAX_CODES = 500
@@ -160,14 +161,14 @@ def classify_code(code):
         labels.add(ERROR_TAXONOMY["semantic_error"])
 
     # 3 — function misuse
-    if re.search(text) and "return" not in text:
+    if FUNCTION_MISSUE.search(text) and "return" not in text:
         labels.add(ERROR_TAXONOMY["function_misuse"])
 
     if (text.count("main(") and text.count("void") == 0):
         labels.add(ERROR_TAXONOMY["function_misuse"])
 
     # 4 — pointer
-    if FUNCTION_MISSUE.search(text):
+    if POINTER.search(text):
         labels.add(ERROR_TAXONOMY["pointer_error"])
 
     # 5 — memory
