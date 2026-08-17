@@ -43,7 +43,7 @@ HEADERS = {
 # =====================================================
 # COLLECT CODE
 # =====================================================
-def collect_code_references(query):
+def collect_code_references(session : requests.Session, query : str):
     url = "https://api.github.com/search/code"
     
     params = {
@@ -51,10 +51,9 @@ def collect_code_references(query):
         "per_page": 100,
     }
 
-    response = requests.get(
+    response = session.get(
         url,
-        params=params,
-        headers=HEADERS
+        params=params
     )
 
     if response.status_code != 200:
@@ -84,7 +83,7 @@ def collect_source_code(item):
         )
 
         if response.status_code == 200:
-            return CLEAN_COMMENTS.sub('', response.text)
+            return response.text
 
     except Exception as e:
         print(e)
@@ -210,41 +209,43 @@ def collect_dataset():
     records = []
     collected = 0
 
-    for query in COLLECTION_QUERIES:
-        print(f"\nCollecting: {query}")
+    with requests.Session() as session:
+        session.headers.update(HEADERS)
+        for query in COLLECTION_QUERIES:
+            print(f"\nCollecting: {query}")
 
-        references = collect_code_references(query)
+            references = collect_code_references(session, query)
 
-        for item in tqdm(references):
-            if collected >= MAX_CODES:
-                break
+            for item in tqdm(references):
+                if collected >= MAX_CODES:
+                    break
 
-            code = collect_source_code(item)
+                code = collect_source_code(session, item)
 
-            if not code:
-                continue
+                if not code:
+                    continue
 
-            labels, messages = classify_code(code)
+                labels, messages = classify_code(code)
 
-            if labels:
-                records.append({
-                    "repository":
-                    item["repository"]["full_name"],
+                if labels:
+                    records.append({
+                        "repository":
+                        item["repository"]["full_name"],
 
-                    "file":
-                    item["name"],
+                        "file":
+                        item["name"],
 
-                    "labels":
-                    labels,
+                        "labels":
+                        labels,
 
-                    "compiler_messages":
-                    messages,
+                        "compiler_messages":
+                        messages,
 
-                    "code":
-                    code
-                })
-                collected += 1
-            time.sleep(0.3)
+                        "code":
+                        code
+                    })
+                    collected += 1
+                time.sleep(0.3)
 
     return pd.DataFrame(records)
 
