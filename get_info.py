@@ -1,3 +1,4 @@
+import csv
 import os
 import re
 import subprocess
@@ -36,9 +37,7 @@ HEADERS = {
 # =====================================================
 # COLLECT CODE
 # =====================================================
-
 def collect_code_references(query):
-
     url = "https://api.github.com/search/code"
     
     params = {
@@ -117,7 +116,7 @@ def collect_compiler_messages(code):
         return process.stderr or ""
 
     except Exception as e:
-        print(e)
+        print("GCC não enconrado")
         return ""
 
     finally:
@@ -258,7 +257,8 @@ dataset = collect_dataset()
 dataset.to_csv(
     "collected_c_code_dataset.csv",
     index=False,
-    quotechar="'"
+    quoting=csv.QUOTE_NONNUMERIC,
+    escapechar='//'
 )
 
 print("\nCollection completed.")
