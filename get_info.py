@@ -219,7 +219,7 @@ def collect_dataset():
                 if collected >= MAX_CODES:
                     break
 
-                code = collect_source_code(session, item)
+                code = collect_source_code(item)
 
                 if not code:
                     continue
