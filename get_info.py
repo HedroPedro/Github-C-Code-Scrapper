@@ -26,6 +26,11 @@ COLLECTION_QUERIES = [
     "language:C introductory programming"
 ]
 
+CLEAN_COMMENTS = re.compile(r"\/\/.*|\/\*[\s\S]*?\*\/")
+SEMANTIC = re.compile(r"if\s*\(.*=.*\)")
+FUNCTION_MISSUE = re.compile(r"\*\w+\s*=", re.DOTALL)
+CONTROL = re.compile(r"while\s*\(\s*1\s*\)")
+
 MAX_CODES = 500
 
 HEADERS = {
@@ -78,7 +83,7 @@ def collect_source_code(item):
         )
 
         if response.status_code == 200:
-            return response.text
+            return CLEAN_COMMENTS.sub('', response.text)
 
     except Exception as e:
         print(e)
@@ -151,33 +156,26 @@ def classify_code(code):
         labels.add(ERROR_TAXONOMY["syntax_error"])
 
     # 2 — semantic
-    if re.search(r"if\s*\(.*=.*\)", text) and "==" not in text:
+    if SEMANTIC.search(text) and "==" not in text:
         labels.add(ERROR_TAXONOMY["semantic_error"])
 
     # 3 — function misuse
-    if re.search(
-        r"(char|int|long|short)\s+\w+\(.*\)\s*\{",
-        text,
-        re.DOTALL
-    ) and "return" not in text:
+    if re.search(text) and "return" not in text:
         labels.add(ERROR_TAXONOMY["function_misuse"])
 
     if (text.count("main(") and text.count("void") == 0):
         labels.add(ERROR_TAXONOMY["function_misuse"])
 
     # 4 — pointer
-    if re.search(r"\*\w+\s*=", text):
+    if FUNCTION_MISSUE.search(text):
         labels.add(ERROR_TAXONOMY["pointer_error"])
 
     # 5 — memory
-    if ("malloc(" in text and "free(" not in text):
-        labels.add(ERROR_TAXONOMY["memory_error"])
-
-    if "gets(" in text:
+    if ("malloc(" in text and "free(" not in text) or "gets(" in text:
         labels.add(ERROR_TAXONOMY["memory_error"])
 
     # 6 — control structure
-    if re.search(r"while\s*\(\s*1\s*\)", text):
+    if CONTROL.search(text):
         labels.add(ERROR_TAXONOMY["control_structure_error"])
 
     # 7 — compiler difficulty
@@ -217,16 +215,15 @@ def collect_dataset():
         references = collect_code_references(query)
 
         for item in tqdm(references):
-
             if collected >= MAX_CODES:
                 break
 
-            code = (collect_source_code(item))
+            code = collect_source_code(item)
 
             if not code:
                 continue
 
-            labels, messages = (classify_code(code))
+            labels, messages = classify_code(code)
 
             if labels:
                 records.append({
@@ -258,7 +255,7 @@ dataset.to_csv(
     "collected_c_code_dataset.csv",
     index=False,
     quoting=csv.QUOTE_NONNUMERIC,
-    escapechar='//'
+    escapechar=r'\\'
 )
 
 print("\nCollection completed.")
