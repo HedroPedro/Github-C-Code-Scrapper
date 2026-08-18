@@ -2,9 +2,7 @@ import csv
 import os
 import re
 import subprocess
-import tempfile
 import time
-from urllib import request
 
 import pandas as pd
 import requests
@@ -51,10 +49,7 @@ def collect_code_references(session : requests.Session, query : str):
         "per_page": 100,
     }
 
-    response = session.get(
-        url,
-        params=params
-    )
+    response = session.get(url, params=params)
 
     if response.status_code != 200:
         print(response.status_code, response.text)
@@ -90,28 +85,21 @@ def collect_source_code(session : requests.Session, item):
 # COLLECT COMPILER OUTPUT
 # =====================================================
 def collect_compiler_messages(code):
-    temp_path = None
     try:
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            suffix=".c",
-            delete=False,
-            encoding="utf-8",
-            errors="ignore"
-        ) as file:
-            file.write(code)
-            temp_path = file.name
-
         process = subprocess.run(
             [
                 "gcc",
                 "-fsyntax-only",
-                temp_path
+                "-x",
+                "c",
+                "-"
             ],
+            input=code,
             capture_output=True,
             text=True,
             encoding="utf-8",
-            errors="ignore"
+            errors="ignore",
+            timeout=30
         )
 
         return process.stderr or ""
@@ -119,13 +107,6 @@ def collect_compiler_messages(code):
     except Exception as e:
         print("GCC não enconrado")
         return ""
-
-    finally:
-        if temp_path and os.path.exists(temp_path):
-            try:
-                os.remove(temp_path)
-            except:
-                pass
 
 # =====================================================
 # CLASSIFICATION
