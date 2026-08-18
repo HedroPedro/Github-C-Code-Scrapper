@@ -222,7 +222,6 @@ def collect_dataset():
                         code
                     })
                     collected += 1
-                time.sleep(0.3)
 
     return pd.DataFrame(records)
 
