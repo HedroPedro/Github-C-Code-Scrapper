@@ -2,7 +2,6 @@ import csv
 import os
 import re
 import subprocess
-import time
 
 import pandas as pd
 import requests
