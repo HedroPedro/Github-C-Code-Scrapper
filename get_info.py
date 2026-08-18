@@ -4,6 +4,7 @@ import re
 import subprocess
 import tempfile
 import time
+from urllib import request
 
 import pandas as pd
 import requests
@@ -62,21 +63,17 @@ def collect_code_references(session : requests.Session, query : str):
     return response.json().get("items", [])
 
 
-def collect_source_code(item):
-    raw_url = (
-        item["html_url"]
-        .replace(
+def collect_source_code(session : requests.Session, item):
+    raw_url = item["html_url"].replace(
             "github.com",
             "raw.githubusercontent.com"
-        )
-        .replace(
+        ).replace(
             "/blob/",
             "/"
         )
-    )
 
     try:
-        response = requests.get(
+        response = session.get(
             raw_url,
             timeout=10
         )
@@ -206,20 +203,20 @@ def classify_code(code):
 # =====================================================
 def collect_dataset():
     records = []
-    collected = 0
 
-    with requests.Session() as session:
-        session.headers.update(HEADERS)
+    with requests.Session() as query_session, requests.Session() as raw_session:
+        query_session.headers.update(HEADERS)
         for query in COLLECTION_QUERIES:
+            collected = 0
             print(f"\nCollecting: {query}")
 
-            references = collect_code_references(session, query)
-
+            references = collect_code_references(query_session, query)
+            
             for item in tqdm(references):
-                if collected >= MAX_CODES:
+                if collected > MAX_CODES:
                     break
 
-                code = collect_source_code(item)
+                code = collect_source_code(raw_session, item)
 
                 if not code:
                     continue
