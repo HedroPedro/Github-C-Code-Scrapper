@@ -162,7 +162,6 @@ def classify_code(code):
     #TODO: Usar algum algoritmo como aquele que o braço apresentou para verificar typos
     # muito melhor que esse set
     typo_patterns = {
-        "print",
         "pritnf",
         "scnaf",
         "scan"
